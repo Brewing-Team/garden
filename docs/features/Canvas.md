@@ -13,7 +13,7 @@ Canvas support is provided by the [[CanvasPage]] plugin. See the plugin page for
 
 ## Demo
 
-![[Canvas.canvas]]
+![[docs/Canvas.canvas]]
 
 ## Customization
 
