@@ -3,4 +3,4 @@ views:
     name: Tabla
     filters:
       and:
-        - file.tags.contains("prueba")
+        - file.tags.contains("clippings")
