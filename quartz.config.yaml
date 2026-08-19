@@ -17,10 +17,10 @@ configuration:
     cdnCaching: true
     typography:
       title:
-        name: Departure Mono
+        name: Space Mono
         weights: [400]
       header:
-        name: Departure Mono
+        name: Space Mono
         weights: [400]
       body: Source Sans Pro
       code: IBM Plex Mono

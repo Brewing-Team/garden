@@ -5,11 +5,16 @@
 @font-face {
   font-family: "Departure Mono";
   src:
-    url("/static/fonts/departure-mono/DepartureMono-Regular.woff2") format("woff2"),
-    url("/static/fonts/departure-mono/DepartureMono-Regular.woff") format("woff");
+    url("static/fonts/departure-mono/DepartureMono-Regular.woff2") format("woff2"),
+    url("static/fonts/departure-mono/DepartureMono-Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+
+:root {
+  --titleFont: "Departure Mono", "Space Mono", monospace;
+  --headerFont: "Departure Mono", "Space Mono", monospace;
 }
 
 // Left sidebar explorer (folder/file nav items)
