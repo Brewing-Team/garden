@@ -16,7 +16,12 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
+      title:
+        name: Departure Mono
+        weights: [400]
+      header:
+        name: Departure Mono
+        weights: [400]
       body: Source Sans Pro
       code: IBM Plex Mono
     colors:
@@ -110,6 +115,10 @@ plugins:
     order: 92
   - source: "@quartz-community/quartz-fonts"
     enabled: true
+    options:
+      fontOrigin: local
+      title: "Departure Mono"
+      header: "Departure Mono"
   - source: "@quartz-themes/core"
     enabled: false
     options:
