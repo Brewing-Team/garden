@@ -1,3 +1,57 @@
 @use "./variables.scss" as *;
 
 // put your custom CSS here!
+
+@font-face {
+  font-family: "Departure Mono";
+  src:
+    url("/static/fonts/departure-mono/DepartureMono-Regular.woff2") format("woff2"),
+    url("/static/fonts/departure-mono/DepartureMono-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Left sidebar explorer (folder/file nav items)
+.explorer,
+.explorer-content ul li > a {
+  font-family: var(--headerFont);
+}
+
+// Tags (inline tag chips, tag list, tags inside note properties)
+a.internal.tag-link {
+  font-family: var(--headerFont);
+}
+
+// Note properties block (title, keys, values, tags, numbers)
+.note-properties {
+  font-family: var(--headerFont);
+}
+.note-properties .note-properties-number {
+  font-family: var(--headerFont);
+}
+
+// Creation date and reading time
+.content-meta {
+  font-family: var(--headerFont);
+}
+
+// Table of contents
+.toc {
+  font-family: var(--headerFont);
+}
+
+// Breadcrumbs (Home > ... page location trail)
+.breadcrumb-container {
+  font-family: var(--headerFont);
+}
+
+// Backlinks content
+.backlinks {
+  font-family: var(--headerFont);
+}
+
+// Recent notes date
+.recent-notes .section > .meta {
+  font-family: var(--headerFont);
+}
