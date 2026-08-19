@@ -1,9 +1,24 @@
 ---
-title: Welcome to Quartz
+title: Kêpos
 date: 2026-08-19
 modified: 2026-08-19
-description: test description
-enableToc: true
+description: Porque la vida no nos mantiene lo suficientemente ocupados como para tener que escribir un puto blog.
+enableToc: false
 ---
-This is a blank Quartz installation.
-See the [documentation](https://quartz.jzhao.xyz) for how to get started.
+```
+   \|/
+    |
+  __|__
+ /     \
+ \_____/
+```
+
+# Kêpos KÊPOS
+# Micelio MICELIO
+# Acervo ACERVO
+# Ágora ÁGORA
+# Atelier ATELIER
+
+#aqui #van #tags #gora #eta
+
+---
