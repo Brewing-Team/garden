@@ -109,7 +109,7 @@ function crecerMicelioProcedural(ctx) {
       if (!n.activo) return;
       
       // Posibilidad de ramificarse
-      if (Math.random() < 0.35) {
+      if (Math.random() < 0.95) {
           let angulo = Math.random() * Math.PI * 2;
           let distancia = 4 + Math.random() * 8; // Saltos de 4 a 12 píxeles
           let nx = n.x + Math.cos(angulo) * distancia;
