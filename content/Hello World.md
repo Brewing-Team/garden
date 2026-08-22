@@ -66,110 +66,166 @@ setTimeout(growGarden, 500);
 
 
 
-
-
-
-<div style="text-align: center; margin: 2rem 0;">
-  <!-- El canvas es de 128x128 píxeles reales, pero lo mostramos a 300px para que los píxeles se vean grandes y cuadrados -->
-  <canvas id="micelio-pixel-art" width="128" height="128" style="width: 300px; height: 300px; background-color: #111; border-radius: 8px; image-rendering: pixelated; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer;" onclick="iniciarMicelio()" title="Haz clic para cultivar otro micelio"></canvas>
-  <div style="color: #a855f7; font-family: monospace; font-size: 1.2rem; margin-top: 1rem; font-weight: bold; letter-spacing: 2px;">MICELIO</div>
+<div style="text-align: center; margin: 2rem 0; cursor: pointer;" title="Haz clic para generar una nueva red">
+  <canvas id="micelio-dither-pixel" width="128" height="128" style="width: 300px; height: 300px; background-color: #09090b; border-radius: 8px; image-rendering: pixelated; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2); border: 4px solid #27272a;" onclick="initMicelioDither()"></canvas>
+  <div style="color: #c084fc; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; margin-top: 1rem; font-weight: bold; letter-spacing: 3px;">RED MICELIAL</div>
 </div>
 
 <script>
-let animacionMicelio;
-let nodos = [];
-let conexiones = [];
+let micelioDitherTimer;
+let puntasActivas = [];
 
-function iniciarMicelio() {
-  const canvas = document.getElementById('micelio-pixel-art');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  
-  // Limpiar animaciones previas si se hace clic otra vez
-  if (animacionMicelio) clearTimeout(animacionMicelio);
-  
-  // Limpiar el lienzo
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, 128, 128);
-  
-  // Nodo inicial en el centro
-  nodos = [{x: 64, y: 64, activo: true}];
-  conexiones = [];
-  
-  crecerMicelioProcedural(ctx);
+// Paleta retro de alto contraste
+const micelioPalette = [
+  '#09090b', // 0: Fondo profundo (Negro)
+  '#18181b', // 1: Tierra oscura
+  '#27272a', // 2: Tierra clara
+  '#581c87', // 3: Halo exterior (Morado oscuro)
+  '#9333ea', // 4: Halo interior (Morado vibrante)
+  '#d8b4fe', // 5: Cuerpo del micelio (Lila claro)
+  '#faf5ff'  // 6: Núcleo puro (Blanco rosado)
+];
+
+// Matriz de Bayer 8x8 para el tramado clásico
+function obtenerTramado(valor, x, y) {
+  const matrizBayer = [
+    [ 0, 48, 12, 60,  3, 51, 15, 63],
+    [32, 16, 44, 28, 35, 19, 47, 31],
+    [ 8, 56,  4, 52, 11, 59,  7, 55],
+    [40, 24, 36, 20, 43, 27, 39, 23],
+    [ 2, 50, 14, 62,  1, 49, 13, 61],
+    [34, 18, 46, 30, 33, 17, 45, 29],
+    [10, 58,  6, 54,  9, 57,  5, 53],
+    [42, 26, 38, 22, 41, 25, 37, 21]
+  ];
+  const px = Math.floor(Math.abs(x) % 8);
+  const py = Math.floor(Math.abs(y) % 8);
+  return matrizBayer[py][px] < (valor * 64);
 }
 
-function crecerMicelioProcedural(ctx) {
-  let nuevosNodos = [];
+function initMicelioDither() {
+  const canvas = document.getElementById('micelio-dither-pixel');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (micelioDitherTimer) clearTimeout(micelioDitherTimer);
   
-  // Lógica de crecimiento orgánico
-  nodos.filter(n => n.activo).forEach(n => {
-      // Posibilidad de que una rama deje de crecer
-      if (Math.random() < 0.08) n.activo = false; 
-      if (!n.activo) return;
+  // Generar el sustrato de fondo con tramado
+  for (let y = 0; y < 128; y++) {
+    for (let x = 0; x < 128; x++) {
+      // Viñeteado: más oscuro en los bordes, más claro en el centro
+      const distancia = Math.hypot(x - 64, y - 64) / 64;
+      const ruido = Math.random() * 0.3;
+      const intensidad = (1 - distancia) * 0.7 + ruido;
       
-      // Posibilidad de ramificarse
-      if (Math.random() < 0.95) {
-          let angulo = Math.random() * Math.PI * 2;
-          let distancia = 4 + Math.random() * 8; // Saltos de 4 a 12 píxeles
-          let nx = n.x + Math.cos(angulo) * distancia;
-          let ny = n.y + Math.sin(angulo) * distancia;
-          
-          // Mantener el crecimiento dentro de los bordes del canvas
-          if (nx > 10 && nx < 118 && ny > 10 && ny < 118) {
-              let nuevoNodo = {x: nx, y: ny, activo: true};
-              nuevosNodos.push(nuevoNodo);
-              conexiones.push({a: n, b: nuevoNodo});
-              
-              // **El secreto de las redes**: buscar nodos cercanos y fusionarse
-              nodos.forEach(otro => {
-                 if (otro !== n) {
-                     let d = Math.hypot(otro.x - nx, otro.y - ny);
-                     // Si hay otro nodo cerca, crear una conexión de red
-                     if (d < 15 && Math.random() < 0.6) {
-                         conexiones.push({a: nuevoNodo, b: otro});
-                     }
-                 }
-              });
-          }
+      if (obtenerTramado(intensidad, x, y)) {
+         ctx.fillStyle = micelioPalette[2];
+      } else if (obtenerTramado(intensidad * 2, x, y)) {
+         ctx.fillStyle = micelioPalette[1];
+      } else {
+         ctx.fillStyle = micelioPalette[0];
       }
-  });
-  
-  nodos = nodos.concat(nuevosNodos);
-  dibujarRed(ctx);
-  
-  // Continuar la animación si aún hay nodos activos
-  if (nodos.filter(n => n.activo).length > 0) {
-      animacionMicelio = setTimeout(() => crecerMicelioProcedural(ctx), 100);
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // Iniciar la red con varias puntas desde el centro
+  puntasActivas = [];
+  for (let i = 0; i < 4; i++) {
+    puntasActivas.push({
+      x: 64,
+      y: 64,
+      angulo: (Math.PI * 2 / 4) * i + Math.random(),
+      vida: 80 + Math.random() * 40
+    });
+  }
+
+  crecerMicelioDither(ctx);
+}
+
+function crecerMicelioDither(ctx) {
+  let nuevasPuntas = [];
+
+  for (let i = puntasActivas.length - 1; i >= 0; i--) {
+    let punta = puntasActivas[i];
+    
+    // Avanzar
+    punta.x += Math.cos(punta.angulo) * 0.8; // Movimiento sub-píxel suave
+    punta.y += Math.sin(punta.angulo) * 0.8;
+    
+    // Variación orgánica del ángulo
+    punta.angulo += (Math.random() - 0.5) * 0.6;
+    punta.vida--;
+
+    // Estampar el pincel pixel art con tramado
+    dibujarPincelMicelio(ctx, punta.x, punta.y);
+
+    // Ramificación
+    if (Math.random() < 0.04 && punta.vida > 10) {
+      nuevasPuntas.push({
+        x: punta.x,
+        y: punta.y,
+        angulo: punta.angulo + (Math.random() > 0.5 ? 0.8 : -0.8), // Bifurcar en ángulo
+        vida: punta.vida * 0.8 // Las ramas hijas viven menos
+      });
+    }
+
+    // Muerte por salir de los límites o fin de vida
+    if (punta.vida <= 0 || punta.x < 5 || punta.x > 123 || punta.y < 5 || punta.y > 123) {
+      puntasActivas.splice(i, 1);
+    }
+  }
+
+  puntasActivas = puntasActivas.concat(nuevasPuntas);
+
+  if (puntasActivas.length > 0) {
+    micelioDitherTimer = setTimeout(() => crecerMicelioDither(ctx), 40);
   }
 }
 
-function dibujarRed(ctx) {
-  // Redibujar el fondo oscuro suavemente
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, 128, 128);
-  
-  // Dibujar las conexiones (hifas)
-  ctx.strokeStyle = '#9333ea'; // Morado oscuro
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  conexiones.forEach(c => {
-      ctx.moveTo(Math.round(c.a.x), Math.round(c.a.y));
-      ctx.lineTo(Math.round(c.b.x), Math.round(c.b.y));
-  });
-  ctx.stroke();
-  
-  // Dibujar los nodos como cuadrados de 2x2 (estilo pixel art)
-  ctx.fillStyle = '#d8b4fe'; // Morado claro/brillante
-  nodos.forEach(n => {
-      // Math.round asegura que los bloques encajen en una cuadrícula estricta de píxeles
-      ctx.fillRect(Math.round(n.x) - 1, Math.round(n.y) - 1, 2, 2);
-  });
+function dibujarPincelMicelio(ctx, cx, cy) {
+  // Dibujar un "sello" alrededor de la punta.
+  // Gracias a usar coordenadas absolutas (px, py) en obtenerTramado,
+  // las pasadas superpuestas no rompen el patrón de ajedrez retro.
+  for (let dx = -4; dx <= 4; dx++) {
+    for (let dy = -4; dy <= 4; dy++) {
+      const px = Math.round(cx + dx);
+      const py = Math.round(cy + dy);
+      const distancia = Math.hypot(dx, dy);
+      
+      // Núcleo blanco/rosado sólido
+      if (distancia < 0.8) {
+        ctx.fillStyle = micelioPalette[6];
+        ctx.fillRect(px, py, 1, 1);
+      } 
+      // Cuerpo del micelio sólido
+      else if (distancia < 1.5) {
+        ctx.fillStyle = micelioPalette[5];
+        ctx.fillRect(px, py, 1, 1);
+      } 
+      // Halo dithered interno (vibrante)
+      else if (distancia < 2.5) {
+        if (obtenerTramado(0.5, px, py)) {
+          ctx.fillStyle = micelioPalette[4];
+          ctx.fillRect(px, py, 1, 1);
+        }
+      } 
+      // Esporas/Halo dithered externo (oscuro)
+      else if (distancia < 4) {
+        // La intensidad se desvanece con la distancia
+        const intensidad = 1 - (distancia / 4);
+        if (obtenerTramado(intensidad * 0.7, px, py)) {
+          ctx.fillStyle = micelioPalette[3];
+          ctx.fillRect(px, py, 1, 1);
+        }
+      }
+    }
+  }
 }
 
 // Iniciar al cargar la página
-setTimeout(iniciarMicelio, 500);
+setTimeout(initMicelioDither, 500);
 </script>
+
 
 
 
